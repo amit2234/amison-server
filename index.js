@@ -1,42 +1,42 @@
 const express = require('express');
 const cors = require('cors');
-const CryptoJS = require('crypto-js');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ZEGO Credentials
-const ZEGO_APP_ID = 991659497;
-const ZEGO_SERVER_SECRET = "573b4a3473df8dee343211442464975c";
-
-// Home Health Check Route
-app.get('/', (req, res) => {
-    res.json({ status: "ok", message: "Amison Game Server is Live & Running!" });
+// Root health check
+app.all('/', (req, res) => {
+    res.status(200).json({ status: "ok", message: "Amison Game Server is Live!" });
 });
 
-// Sud.tech Verification & get_sstoken Callback
+// Sud.tech Official Verification & get_sstoken Callback
 app.all('/get_sstoken', (req, res) => {
-    console.log("Sud.tech get_sstoken request received:", req.body || req.query);
-    
-    // Sud.tech verification ke liye standard success format
-    const code = (req.body && req.body.code) || req.query.code || "test_code";
-    
-    res.json({
+    console.log("Sud.tech verification/callback headers:", req.headers);
+    console.log("Sud.tech verification/callback body:", req.body);
+    console.log("Sud.tech verification/callback query:", req.query);
+
+    const code = (req.body && req.body.code) || req.query.code || "test_code_12345";
+    const uid = (req.body && req.body.uid) || req.query.uid || "user_test_001";
+
+    // Official Sud.tech Response Format
+    return res.status(200).json({
         ret_code: 0,
-        ret_msg: "success",
+        ret_msg: "SUCCESS",
         data: {
             user_info: {
-                uid: "user_" + Date.now(),
-                nickname: "AmisonUser",
-                avatar_url: "https://via.placeholder.com/150"
+                uid: String(uid),
+                nick_name: "AmisonPlayer",
+                avatar_url: "https://via.placeholder.com/150",
+                gender: "male"
             },
-            token: "sstoken_" + CryptoJS.MD5(code + ZEGO_SERVER_SECRET).toString()
+            sstoken: "sstoken_" + Buffer.from(code + Date.now()).toString('hex').slice(0, 32)
         }
     });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
