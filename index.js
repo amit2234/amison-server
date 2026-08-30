@@ -6,37 +6,49 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root health check
+// Health check
 app.all('/', (req, res) => {
-    res.status(200).json({ status: "ok", message: "Amison Game Server is Live!" });
+    res.status(200).json({ retCode: 0, retMsg: "success", status: "OK" });
 });
 
-// Sud.tech Official Verification & get_sstoken Callback
+// Sud.tech Official get_sstoken Callback
 app.all('/get_sstoken', (req, res) => {
-    console.log("Sud.tech verification/callback headers:", req.headers);
-    console.log("Sud.tech verification/callback body:", req.body);
-    console.log("Sud.tech verification/callback query:", req.query);
+    console.log("Sud Request Body:", req.body);
+    console.log("Sud Request Query:", req.query);
 
-    const code = (req.body && req.body.code) || req.query.code || "test_code_12345";
-    const uid = (req.body && req.body.uid) || req.query.uid || "user_test_001";
+    const code = (req.body && req.body.code) || req.query.code || "test_code";
+    const uid = (req.body && req.body.uid) || req.query.uid || "test_user_01";
 
-    // Official Sud.tech Response Format
+    const expireDate = Date.now() + (2 * 60 * 60 * 1000); // 2 hours validity
+
+    // Standard Sud.tech API format (dono structures match karne ke liye)
     return res.status(200).json({
+        retCode: 0,
+        retMsg: "success",
         ret_code: 0,
-        ret_msg: "SUCCESS",
+        ret_msg: "success",
         data: {
-            user_info: {
+            userInfo: {
                 uid: String(uid),
-                nick_name: "AmisonPlayer",
-                avatar_url: "https://via.placeholder.com/150",
+                nickName: "AmisonUser",
+                avatarUrl: "https://via.placeholder.com/150",
                 gender: "male"
             },
-            sstoken: "sstoken_" + Buffer.from(code + Date.now()).toString('hex').slice(0, 32)
-        }
+            ssToken: "sstoken_" + Buffer.from(code + "_" + uid).toString('hex').slice(0, 32),
+            expireDate: expireDate
+        },
+        userInfo: {
+            uid: String(uid),
+            nickName: "AmisonUser",
+            avatarUrl: "https://via.placeholder.com/150",
+            gender: "male"
+        },
+        ssToken: "sstoken_" + Buffer.from(code + "_" + uid).toString('hex').slice(0, 32),
+        expireDate: expireDate
     });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server listening on port ${PORT}`);
 });
