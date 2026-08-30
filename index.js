@@ -11,13 +11,8 @@ app.all('/', (req, res) => {
     res.status(200).json({ retCode: 0, retMsg: "success", status: "OK" });
 });
 
-// Sud.tech Official get_sstoken Callback
+// 1. Sud.tech get_sstoken Callback
 app.all('/get_sstoken', (req, res) => {
-    console.log("Sud Headers:", req.headers);
-    console.log("Sud Body:", req.body);
-    console.log("Sud Query:", req.query);
-
-    // Get code from body, query or fallback
     let code = "default_test_code";
     if (req.body && typeof req.body === 'object' && req.body.code) {
         code = req.body.code;
@@ -26,10 +21,9 @@ app.all('/get_sstoken', (req, res) => {
     }
 
     const uid = (req.body && req.body.uid) || (req.query && req.query.uid) || "user_amison_01";
-    const expireDate = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+    const expireDate = Date.now() + (24 * 60 * 60 * 1000);
     const tokenStr = "sstoken_" + Buffer.from(code + "_" + uid).toString('hex').slice(0, 32);
 
-    // Official Sud.tech Verification Response format
     return res.status(200).json({
         retCode: 0,
         retMsg: "success",
@@ -50,6 +44,27 @@ app.all('/get_sstoken', (req, res) => {
             nickName: "AmisonUser",
             avatarUrl: "https://via.placeholder.com/150",
             gender: "male"
+        },
+        ssToken: tokenStr,
+        expireDate: expireDate
+    });
+});
+
+// 2. Sud.tech update_sstoken Callback
+app.all('/update_sstoken', (req, res) => {
+    console.log("Sud Update Token Body:", req.body);
+    const uid = (req.body && req.body.uid) || (req.query && req.query.uid) || "user_amison_01";
+    const expireDate = Date.now() + (24 * 60 * 60 * 1000);
+    const tokenStr = "sstoken_updated_" + Buffer.from(uid + "_" + Date.now()).toString('hex').slice(0, 32);
+
+    return res.status(200).json({
+        retCode: 0,
+        retMsg: "success",
+        ret_code: 0,
+        ret_msg: "success",
+        data: {
+            ssToken: tokenStr,
+            expireDate: expireDate
         },
         ssToken: tokenStr,
         expireDate: expireDate
